@@ -78,7 +78,6 @@ async function postprocess(embeddings: number[][]): Promise<string[][]> {
 
   await Promise.all(embeddings.map(async (embedding) => {
     try {
-
       const result = await weaviate.graphql.get()
         .withClassName('Earrings')
         // @ts-ignore
@@ -99,7 +98,7 @@ async function postprocess(embeddings: number[][]): Promise<string[][]> {
       throw Error("Failed request Weaviate", error)
     }
   }))
-  console.log(filteredProductsSKUs);
+  // console.log(filteredProductsSKUs);
 
   return filteredProductsSKUs
 }
