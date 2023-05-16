@@ -2,7 +2,7 @@ import { unlinkSync } from "fs";
 import { join } from "path";
 
 import { v4 as uuidv4 } from 'uuid';
-import tf from '@tensorflow/tfjs-node';
+import tf from '@tensorflow/tfjs';
 import firebase from 'firebase-admin';
 import { initializeApp } from 'firebase-admin/app';
 import sharp from "sharp";
@@ -141,8 +141,13 @@ async function predict(image: Buffer): Promise<[number, number, number, number, 
 	const config = useRuntimeConfig()
 
 	const [preprocessedImage, dim] = await preprocess(image)
-	const predictions = await $fetch("/detector:predict", { baseURL: config.apiURL, method: "POST", body: { "instances": preprocessedImage } })
-	return postprocess(predictions['predictions'][0], dim)
+
+	try {
+		const detections = await $fetch("/detector:predict", { baseURL: config.apiURL, method: "POST", body: { "instances": preprocessedImage } })
+		return postprocess(detections['predictions'][0], dim)
+	} catch (error) {
+		throw Error("Failed request Tensorflow Serving /detector:predict ", error)
+	}
 }
 
 async function postprocess(predictions: [number, number, number, number, number, number][], dim: [number, number], confThreshold = 0.25): Promise<[number, number, number, number, number, number][]> {

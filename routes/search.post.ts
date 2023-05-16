@@ -5,10 +5,8 @@ import { MeiliSearch } from "meilisearch";
 import Weaviate, { WeaviateClient } from "weaviate-ts-client";
 // import { ChromaClient } from 'chromadb';
 import sharp from "sharp";
-import { engine } from '@tensorflow/tfjs-node';
 import { Box, Detection, Product } from "../utils/models";
 
-const tf = { engine }
 const path = { join }
 
 const CLASS_DIM: [number, number] = [256, 256]
@@ -51,16 +49,13 @@ async function cropImage(image: Buffer, boxes: Box[]): Promise<Buffer[]> {
 }
 
 async function preprocess(images: Buffer[]): Promise<number[][]> {
-  tf.engine().startScope()
   const reshapedImagesArray = await Promise.all(images.map(async (image) => {
     // Resize into 640x640
     const [resizedImageArray, dim] = await resize(image, CLASS_DIM)
     // console.log({ resizedImageArray })
     return reshape(resizedImageArray, CLASS_DIM)
   }))
-
   // console.log({ reshapedImageArray })
-  tf.engine().startScope()
 
   return reshapedImagesArray
 }
@@ -69,31 +64,42 @@ async function predict(images: Buffer[]): Promise<string[][]> {
   const config = useRuntimeConfig()
 
   const preprocessedImages = await preprocess(images)
-  const embeddings = await $fetch("/feature_extractor:predict", { baseURL: config.apiURL, method: "POST", body: { "instances": preprocessedImages } })
-  return postprocess(embeddings['predictions'])
+  try {
+    const embeddings = await $fetch("/feature_extractor:predict", { baseURL: config.apiURL, method: "POST", body: { "instances": preprocessedImages } })
+
+    return postprocess(embeddings['predictions'])
+  } catch (error) {
+    throw Error("Failed request Tensorflow Serving /feature_extractor:predict", error)
+  }
 }
 
 async function postprocess(embeddings: number[][]): Promise<string[][]> {
   const filteredProductsSKUs: string[][] = []
 
   await Promise.all(embeddings.map(async (embedding) => {
-    const result = await weaviate.graphql.get()
-      .withClassName('Earrings')
-      // @ts-ignore
-      .withFields(['lakeId', 'sku'])
-      .withNearVector({
-        distance: 0.65,
-        vector: embedding
-      })
-      .do()
+    try {
 
-    const products: { lakeId: string, sku: string }[] = result['data']['Get']['Earrings']
-    const filteredProductSKUs = new Set<string>()
-    products.filter((product) => product.sku !== '')
-      .forEach((product) => filteredProductSKUs.add(product.sku))
+      const result = await weaviate.graphql.get()
+        .withClassName('Earrings')
+        // @ts-ignore
+        .withFields(['lakeId', 'sku'])
+        .withNearVector({
+          distance: 0.65,
+          vector: embedding
+        })
+        .do()
 
-    filteredProductsSKUs.push([...filteredProductSKUs])
+      const products: { lakeId: string, sku: string }[] = result['data']['Get']['Earrings']
+      const filteredProductSKUs = new Set<string>()
+      products.filter((product) => product.sku !== '')
+        .forEach((product) => filteredProductSKUs.add(product.sku))
+
+      filteredProductsSKUs.push([...filteredProductSKUs])
+    } catch (error) {
+      throw Error("Failed request Weaviate", error)
+    }
   }))
+  console.log(filteredProductsSKUs);
 
   return filteredProductsSKUs
 }
@@ -110,26 +116,30 @@ export default defineEventHandler<any>(async (event) => {
     // console.log({ labels })
 
     return Promise.all(labels.map(async (labels) => {
-      const products = await meilisearch.multiSearch({ queries: labels.map((id) => ({ 'indexUid': 'products', 'q': `'${id}'` })) })
+      try {
+        const products = await meilisearch.multiSearch({ queries: labels.map((id) => ({ 'indexUid': 'products', 'q': `'${id}'` })) })
 
-      return {
-        products: products.results.map((data) => data.hits[0])
-          .map(({ id, image, banner, name, category, priceOriginal, priceDiscounted, ratings }): Product => ({
-            id,
-            image,
-            banner,
-            name,
-            category,
-            price: {
-              "original": priceOriginal,
-              "discounted": priceDiscounted
-            },
-            ratings
-          }))
+        return {
+          products: products.results.map((data) => data.hits[0])
+            .map(({ id, image, banner, name, category, priceOriginal, priceDiscounted, ratings }): Product => ({
+              id,
+              image,
+              banner,
+              name,
+              category,
+              price: {
+                "original": priceOriginal,
+                "discounted": priceDiscounted
+              },
+              ratings
+            }))
+        }
+      } catch (error) {
+        throw Error("Failed request MeiliSearch", error)
       }
     }))
   } catch (error: any) {
-    if (error.statusCode === 404)
+    if (error?.statusCode === 404)
       throw error
 
     console.error("API search POST", error);

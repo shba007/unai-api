@@ -15,9 +15,7 @@
     "meilisearch": "^0.32.3"
   },
   "dependencies": {
-    "@tensorflow/tfjs-backend-cpu": "^4.5.0",
-    "@tensorflow/tfjs-core": "^4.5.0",
-    "@tensorflow/tfjs-node": "^4.5.0",
+    "@tensorflow/tfjs": "^4.5.0",
     "chromadb": "^1.4.2",
     "firebase-admin": "^11.8.0",
     "nitropack": "latest",
