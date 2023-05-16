@@ -2,7 +2,7 @@ import { unlinkSync } from "fs";
 import { join } from "path";
 
 import { v4 as uuidv4 } from 'uuid';
-import { argMax, booleanMaskAsync, cast, engine, gather, greater, image, max, stack, tensor1d, tensor2d, tidy } from '@tensorflow/tfjs-node';
+import tf from '@tensorflow/tfjs-node';
 import firebase from 'firebase-admin';
 import { initializeApp } from 'firebase-admin/app';
 import sharp from "sharp";
@@ -24,7 +24,6 @@ const bucket = storage().bucket()
 
 const path = { join }
 const fs = { unlinkSync }
-const tf = { argMax, booleanMaskAsync, cast, engine, gather, greater, image, max, stack, tensor1d, tensor2d, tidy }
 
 const DET_DIM: [number, number] = [640, 640]
 const DELETE_TIMEOUT = 5 * 60 * 1000

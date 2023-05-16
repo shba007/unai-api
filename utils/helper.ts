@@ -1,8 +1,8 @@
-import { join } from "path";
+// import { join } from "path";
 import sharp from "sharp";
 
+/*
 const path = { join }
-
 function saveUint8ArrayAsImage(data: Buffer | sharp.Sharp, [width, height], outputPath) {
 	outputPath = path.join(process.cwd(), outputPath)
 	console.log(outputPath);
@@ -19,7 +19,7 @@ function saveUint8ArrayAsImage(data: Buffer | sharp.Sharp, [width, height], outp
 	} catch (error) {
 		console.error('Error saving image:', error);
 	}
-}
+} */
 
 function convertBox(initBox: number[], imageDim, initFormat: "CCWH" | "XYWH" | "XYXY" = 'XYXY', initNormalized = false, finalFormat: "CCWH" | "XYWH" | "XYXY" = 'CCWH', finalNormalized = false, isDebug = false): [number, number, number, number] {
 	const finalBox = new Array(4).fill(0) as [number, number, number, number];
@@ -179,4 +179,4 @@ async function reshape(buffer: Buffer, [width, height]: [number, number]) {
 	return shapeArray as unknown as number[]
 }
 
-export { resize, reshape, convertBox, base64ToArray, saveUint8ArrayAsImage };
+export { resize, reshape, convertBox, base64ToArray };
