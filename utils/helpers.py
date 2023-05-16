@@ -12,15 +12,13 @@ from PIL import Image, ImageOps, ExifTags
 PRESET = os.getenv("PRESET")
 PRESET = "deploy" if PRESET == None else PRESET
 
-firebase_config = os.getenv("FIREBASE")
-firebase_config = "" if firebase_config == None else firebase_config
+FIREBASE_CONFIG = os.getenv("FIREBASE_CONFIG")
+FIREBASE_CONFIG = "" if FIREBASE_CONFIG == None else FIREBASE_CONFIG
 
-firebase_dict = json.loads(firebase_config)
 STORAGE_BUCKET = os.getenv("STORAGE_BUCKET")
 STORAGE_BUCKET = "" if STORAGE_BUCKET == None else STORAGE_BUCKET
 
-cred = credentials.Certificate(firebase_dict)
-initialize_app(cred, {'storageBucket': STORAGE_BUCKET})
+initialize_app(credentials.Certificate(json.loads(FIREBASE_CONFIG)), {'storageBucket': STORAGE_BUCKET})
 
 bucket = storage.bucket()
 
@@ -88,8 +86,7 @@ normalized -> X /=  Image Width and Y /=  Image Height
 """
 
 
-def convert_box(bbox, image_dim, init_format="XYXY", init_normalized=False, final_format="CCWH", final_normalized=False):
-    init_box = bbox
+def convert_box(init_box, image_dim, init_format="XYXY", init_normalized=False, final_format="CCWH", final_normalized=False, isDebug=False):
     final_box = np.zeros_like(init_box)
     img_width, img_height = image_dim
 
@@ -113,6 +110,8 @@ def convert_box(bbox, image_dim, init_format="XYXY", init_normalized=False, fina
     else:
         x_center, y_center, width, height = init_box
 
+    # if isDebug:
+    #     print("\n",x_center, y_center, width, height)
     # Convert form "CCWH" to "XYXY" or "XYWH"
     if final_format == "XYXY":
         final_box[0] = x_center - width/2
@@ -126,12 +125,18 @@ def convert_box(bbox, image_dim, init_format="XYXY", init_normalized=False, fina
         final_box[3] = height
     else:
         final_box = [x_center, y_center, width, height]
+    
+    # if isDebug:
+    #     print({ "final_box": np.array(final_box).tolist() })
 
     if final_normalized:
         final_box[0] /= img_width
         final_box[1] /= img_height
         final_box[2] /= img_width
         final_box[3] /= img_height
+    
+    # if isDebug:
+    #     print({ "finalBoxNormalize": np.array(final_box).tolist() })
 
     return final_box
 

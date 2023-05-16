@@ -75,7 +75,7 @@ class Detector():
         return bboxes
 
     def __scale__(self, box, dim):
-        # print("__scale__ bbox, dim", bbox.numpy(), dim)
+        # print("__scale__ bbox, dim", box.numpy().tolist(), dim.numpy().tolist())
         """
         format x_center, y_center, width, height in not normalized for 640, 640 image -> 
         format x_center, y_center, width, height in normalized for self.dim image
@@ -98,10 +98,13 @@ class Detector():
 
         # print("after", x_center, y_center, width, height)
         scaled_box = tf.stack([x_center, y_center, width, height])
-        # print("scaled_box", scaled_box.numpy())
-        converted_box = convert_box(scaled_box, dim, init_format="CCWH", final_format=self.output_format)
+        # print("scaled_box",scaled_box.numpy().tolist())
+        dim = tf.cast(dim, tf.float32)
+
+        # print("scaled_box", scaled_box.numpy().tolist())
+        converted_box = convert_box(scaled_box, dim, init_format="CCWH", final_format=self.output_format,final_normalized=True, isDebug=True)
         converted_box = tf.convert_to_tensor(converted_box)
-        # print("converted_box", converted_box)
+        # print("converted_box", converted_box.numpy().tolist())
         return converted_box
 
     def __postprocess__(self, prediction, dim, conf_threshold=0.25):
@@ -118,16 +121,16 @@ class Detector():
         mask = tf.greater(conf, conf_threshold)
 
         filtered_boxes = tf.boolean_mask(boxes, mask)
-        # print("Boxes before NMS", filtered_boxes.numpy())
+        # print("Boxes before NMS", filtered_boxes.numpy().tolist())
         # NMS
         nms_boxes = self.__nms__(filtered_boxes)
-        # print("Boxes After NMS", nms_boxes)
+        # print("Boxes After NMS", nms_boxes.numpy().tolist())
         # Scale
         scaled_boxes = tf.map_fn(lambda x: self.__scale__(x, dim), nms_boxes)
         if len(scaled_boxes) > 0:
             scaled_boxes = tf.concat([scaled_boxes, nms_boxes[:, -2:]], axis=-1)
 
-        # print("Boxes After Scaling", scaled_boxes)
+        # print("Boxes After Scaling", scaled_boxes.numpy().tolist())
         return scaled_boxes
 
     def predict(self, inputs):
@@ -144,7 +147,7 @@ class Detector():
         predictions = tf.convert_to_tensor(predictions)
 
         detections = tf.map_fn(lambda x: self.__postprocess__(x[0], x[1]), (predictions, dim), fn_output_signature=(tf.float32))
-        detections = tf.round(detections)
+        # detections = tf.round(detections)
         detections = detections.numpy().tolist()
 
         return detections

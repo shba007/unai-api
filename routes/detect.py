@@ -46,16 +46,16 @@ async def detect(background_tasks: BackgroundTasks, request: ImageRequest):
         data.images = {} if data.images == None else data.images
         data.images[id] = image
 
-        det_img = data.get_images()
-        img_width, img_height = det_img[0]["image"].size
+        img = data.get_images()
+        img_width, img_height = img[0]["image"].size
 
-        det_img = tf.keras.utils.img_to_array(det_img[0]["image"])
-        det_img = tf.expand_dims(det_img, axis=0)
+        img = tf.keras.utils.img_to_array(img[0]["image"])
+        img = tf.expand_dims(img, axis=0)
 
-        if (det_img.shape[-1] > 3):
-            det_img = remove_alpha_channel(det_img)
+        if (img.shape[-1] > 3):
+            img = remove_alpha_channel(img)
 
-        detections = detector.predict(det_img)[0]
+        detections = detector.predict(img)[0]
 
         boxes = []
         for detection in detections:
@@ -64,16 +64,10 @@ async def detect(background_tasks: BackgroundTasks, request: ImageRequest):
             if (int(label) != 0):
                 continue
 
-            x /= img_width
-            y /= img_height
-            width /= img_width
-            height /= img_height
-
             x *= 100.0
             y *= 100.0
             width *= 100.0
             height *= 100.0
-            conf *= 100.0
 
             boxes.append({
                 "x": x,

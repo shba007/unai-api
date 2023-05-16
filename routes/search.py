@@ -11,7 +11,6 @@ import meilisearch as Meilisearch
 from utils.helpers import Data
 from utils.models import OneShotClassifier
 
-
 router = APIRouter()
 
 classifier = OneShotClassifier()
@@ -77,11 +76,12 @@ async def search(request: ImageRequest):
         class_img = [x["image"] for x in class_img]
 
         embeddings = classifier.predict(class_img)
+        # print("embeddings", embeddings)
         results = []
 
         for embedding in embeddings:
             embedding = {
-                "distance": 1.0,
+                "distance": 0.65,
                 "vector": embedding
             }
             result = weaviate.query.get('Earrings', ['lakeId', 'sku']).with_near_vector(embedding).do()
@@ -99,11 +99,9 @@ async def search(request: ImageRequest):
         for item in filtered_metadatas:
             # print("\nitem", item, "\n")
             seen = set()
-            unique_ids = [x["sku"] for x in item if not (x['sku'] in seen or seen.add(x['sku']))]
-            # print("\nunique_ids", unique_ids, "\n")
-            queries = [{'indexUid': 'products', 'q': f'"{unique_id}"'} for unique_id in unique_ids]
-            # print("\nqueries", queries, "\n")
-            products = meilisearch.multi_search(queries)
+            ids = [x["sku"] for x in item if not (x['sku'] in seen or seen.add(x['sku']))]
+            # print("\nunique_ids", ids, "\n")
+            products = meilisearch.multi_search([{'indexUid': 'products', 'q': f"'{id}'"} for id in ids])
             # print("\nhits", products, "\n")
             products = [format(product["hits"][0]) for product in products["results"] if len(product["hits"])]
             # print("\nproducts", products, "\n")
