@@ -35,11 +35,11 @@ async function saveImage(id: string, image: Buffer): Promise<boolean> {
 		storage.setItem(id, "pending")
 		await sharp(image).toFile(filePath)
 		storage.setItem(id, true)
-		console.log(`Image saved to: ${filePath}`);
+		console.log(`Image saved to: ${id}`);
 		return true
 	} catch (error) {
 		storage.setItem(id, false)
-		console.error('Error saving image:', error);
+		console.error(`Error save image: ${id}`, error);
 		return false
 	}
 }
@@ -60,7 +60,7 @@ async function uploadImage(id: string, image: Buffer): Promise<boolean> {
 		console.log(`Image uploaded to: ${id}`);
 		return new Promise((resolve) => setTimeout(() => resolve(deleteImage(id)), DELETE_TIMEOUT))
 	} catch (error) {
-		console.error('Error saving image:', error);
+		console.error(`Error upload image: ${id}`, error);
 		return false
 	}
 }
@@ -72,10 +72,10 @@ function deleteImage(id: string): boolean {
 	try {
 		fs.unlinkSync(filePath);
 		storage.setItem(id, false)
-		console.log(`Image deleted: ${filePath}`);
+		console.log(`Image deleted: ${id}`);
 		return true;
 	} catch (error) {
-		console.error(`Error deleting image: ${filePath}`, error);
+		console.error(`Error deleting image: ${id}`, error);
 		return false;
 	}
 }
