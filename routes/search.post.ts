@@ -120,7 +120,7 @@ export default defineEventHandler<any>(async (event) => {
 
         return {
           products: products.results.map((data) => data.hits[0])
-            .map(({ id, image, banner, name, category, priceOriginal, priceDiscounted, ratings }): Product => ({
+            .map(({ id, image, banner, name, category, priceOriginal, priceDiscounted, ratings, stock }): Product => ({
               id,
               image,
               banner,
@@ -130,7 +130,8 @@ export default defineEventHandler<any>(async (event) => {
                 "original": priceOriginal,
                 "discounted": priceDiscounted
               },
-              ratings
+              ratings,
+              stock
             }))
         }
       } catch (error) {

@@ -22,4 +22,5 @@ export interface Product {
 		discounted: number;
 	};
 	ratings: [number, number, number, number, number];
+	stock: boolean;
 }
