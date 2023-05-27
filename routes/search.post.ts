@@ -2,8 +2,8 @@ import { readFileSync } from "fs";
 import { join } from "path";
 
 import { MeiliSearch } from "meilisearch";
-import Weaviate, { WeaviateClient } from "weaviate-ts-client";
-// import { ChromaClient } from 'chromadb';
+// @ts-ignore
+import { QdrantClient } from '@qdrant/js-client-rest';
 import sharp from "sharp";
 import { Box, Detection, Product } from "../utils/models";
 
@@ -15,12 +15,11 @@ const meilisearch = new MeiliSearch({
   host: process.env.MEILISEARCH_URL as string,
   apiKey: process.env.MEILISEARCH_SECRET as string,
 });
-const [schema, host] = (process.env.WEAVIATE_URL as string).split("://")
-const weaviate: WeaviateClient = Weaviate.client({
-  scheme: schema,
-  host: host,
+
+const qdrant = new QdrantClient({
+  url: process.env.QDRANT_URL as string,
+  apiKey: process.env.QDRANT_SECRET as string
 });
-// const chroma = new ChromaClient();
 
 async function openImage(id: string): Promise<Buffer> {
   const filePath = path.join(process.cwd(), `assets/images/${id}.jpg`)
@@ -78,29 +77,29 @@ async function postprocess(embeddings: number[][]): Promise<string[][]> {
 
   await Promise.all(embeddings.map(async (embedding) => {
     try {
-      const result = await weaviate.graphql.get()
-        .withClassName('Earrings')
-        // @ts-ignore
-        .withFields(['lakeId', 'sku'])
-        .withNearVector({
-          distance: 0.65,
-          vector: embedding
-        })
-        .do()
+      const result = await qdrant.search("Earrings", {
+        vector: embedding,
+        limit: 50,
+      });
 
-      const products: { lakeId: string, sku: string }[] = result['data']['Get']['Earrings']
+      const products: { lakeId: string, sku: string }[] = result.map(({ payload }) => ({ lakeId: payload.lakeId as string, sku: payload.sku as string }))
       const filteredProductSKUs = new Set<string>()
       products.filter((product) => product.sku !== '')
         .forEach((product) => filteredProductSKUs.add(product.sku))
 
       filteredProductsSKUs.push([...filteredProductSKUs])
     } catch (error) {
-      throw Error("Failed request Weaviate", error)
+      throw Error("Failed request Qdrant", error)
     }
   }))
   // console.log(filteredProductsSKUs);
 
   return filteredProductsSKUs
+}
+
+export interface SearchProduct extends Omit<Product, 'ratings'> {
+  totalRating: number
+  averageRating: number,
 }
 
 export default defineEventHandler<any>(async (event) => {
@@ -115,28 +114,31 @@ export default defineEventHandler<any>(async (event) => {
     // console.log({ labels })
 
     return Promise.all(labels.map(async (labels) => {
-      try {
-        const products = await meilisearch.multiSearch({ queries: labels.map((id) => ({ 'indexUid': 'products', 'q': `'${id}'` })) })
+      // try {
+      const products = await meilisearch.multiSearch({ queries: labels.map((id) => ({ 'indexUid': 'products', 'q': `'${id}'` })) })
 
-        return {
-          products: products.results.map((data) => data.hits[0])
-            .map(({ id, image, banner, name, category, priceOriginal, priceDiscounted, ratings, stock }): Product => ({
-              id,
-              image,
-              banner,
-              name,
-              category,
-              price: {
-                "original": priceOriginal,
-                "discounted": priceDiscounted
-              },
-              ratings,
-              stock
-            }))
-        }
-      } catch (error) {
-        throw Error("Failed request MeiliSearch", error)
+      return {
+        products: products.results.map((data) => data.hits[0])
+          .filter(a => {
+            return a != undefined
+          })
+          .map(({ id, image, banner, name, categories, priceOriginal, priceDiscounted, rank, totalRating, averageRating, stock }): Product =>
+          ({
+            id,
+            image,
+            banner,
+            name,
+            categories,
+            price: { original: priceOriginal, discounted: priceDiscounted },
+            rank,
+            totalRating,
+            averageRating,
+            stock
+          }))
       }
+      /*  } catch (error) {
+         throw Error("Failed request MeiliSearch", error)
+       } */
     }))
   } catch (error: any) {
     if (error?.statusCode === 404)

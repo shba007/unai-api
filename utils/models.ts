@@ -8,7 +8,7 @@ export interface Box {
 
 export interface Detection {
 	id: string;
-	boxes: Box[]
+	boxes: Box[];
 }
 
 export interface Product {
@@ -16,11 +16,13 @@ export interface Product {
 	image: string;
 	banner: 'popular' | 'newest' | 'treading' | null;
 	name: string;
-	category: string;
+	categories: string;
 	price: {
 		original: number;
 		discounted: number;
 	};
-	ratings: [number, number, number, number, number];
+	rank: number;
+	totalRating: number;
+	averageRating: number;
 	stock: boolean;
 }
