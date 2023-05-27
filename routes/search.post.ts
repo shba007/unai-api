@@ -114,31 +114,31 @@ export default defineEventHandler<any>(async (event) => {
     // console.log({ labels })
 
     return Promise.all(labels.map(async (labels) => {
-      // try {
-      const products = await meilisearch.multiSearch({ queries: labels.map((id) => ({ 'indexUid': 'products', 'q': `'${id}'` })) })
+      try {
+        const products = await meilisearch.multiSearch({ queries: labels.map((id) => ({ 'indexUid': 'products', 'q': `'${id}'` })) })
 
-      return {
-        products: products.results.map((data) => data.hits[0])
-          .filter(a => {
-            return a != undefined
-          })
-          .map(({ id, image, banner, name, categories, priceOriginal, priceDiscounted, rank, totalRating, averageRating, stock }): Product =>
-          ({
-            id,
-            image,
-            banner,
-            name,
-            categories,
-            price: { original: priceOriginal, discounted: priceDiscounted },
-            rank,
-            totalRating,
-            averageRating,
-            stock
-          }))
+        return {
+          products: products.results.map((data) => data.hits[0])
+            .filter(a => {
+              return a != undefined
+            })
+            .map(({ id, image, banner, name, categories, priceOriginal, priceDiscounted, rank, totalRating, averageRating, stock }): Product =>
+            ({
+              id,
+              image,
+              banner,
+              name,
+              categories,
+              price: { original: priceOriginal, discounted: priceDiscounted },
+              rank,
+              totalRating,
+              averageRating,
+              stock
+            }))
+        }
+      } catch (error) {
+        throw Error("Failed request MeiliSearch", error)
       }
-      /*  } catch (error) {
-         throw Error("Failed request MeiliSearch", error)
-       } */
     }))
   } catch (error: any) {
     if (error?.statusCode === 404)
