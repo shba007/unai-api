@@ -10,18 +10,14 @@
     "start": "node .output/server/index.mjs"
   },
   "devDependencies": {
-    "@types/node": "^20.2.3",
-    "@types/uuid": "^9.0.1",
-    "meilisearch": "^0.32.3"
+    "@types/node": "^20.2.5"
   },
   "dependencies": {
     "@qdrant/js-client-rest": "^1.2.0",
     "@tensorflow/tfjs": "^4.6.0",
-    "chromadb": "^1.4.2",
     "firebase-admin": "^11.8.0",
+    "meilisearch": "0.32.3",
     "nitropack": "^2.4.1",
-    "ra-data-graphql": "^4.10.1",
-    "sharp": "^0.32.1",
-    "uuid": "^9.0.0"
+    "sharp": "^0.32.1"
   }
 }

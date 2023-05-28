@@ -1,13 +1,13 @@
 import { unlinkSync } from "fs";
 import { join } from "path";
 
-import { v4 as uuidv4 } from 'uuid';
 import tf from '@tensorflow/tfjs';
 import firebase from 'firebase-admin';
 import { initializeApp } from 'firebase-admin/app';
 import sharp from "sharp";
 
 import { Detection } from '../utils/models';
+import { randomUUID } from "crypto";
 
 const { storage, credential } = firebase;
 
@@ -180,7 +180,7 @@ export default defineEventHandler<Detection>(async (event) => {
 
 		const { image } = await readBody<{ image: string }>(event);
 		// Generate a random UUID
-		const id = uuidv4()
+		const id = randomUUID()
 
 		// Convert from base64 encoding to array
 		const imageArray = await base64ToArray(image)
