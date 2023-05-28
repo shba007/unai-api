@@ -7,7 +7,8 @@
     "build": "nitropack build",
     "preview": "node .output/server/index.mjs",
     "clean": "rm -r .nitro .output",
-    "start": "node .output/server/index.mjs"
+    "start": "node .output/server/index.mjs",
+    "docker:run": "docker run --name orykit-ai-local -p 2003:3000 --env-file .env -d orykit/ai:0.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.2.5"
@@ -16,7 +17,7 @@
     "@qdrant/js-client-rest": "^1.2.0",
     "@tensorflow/tfjs": "^4.6.0",
     "firebase-admin": "^11.8.0",
-    "meilisearch": "^0.32.3",
+    "meilisearch": "0.32.3",
     "nitropack": "^2.4.1",
     "sharp": "^0.32.1"
   }
