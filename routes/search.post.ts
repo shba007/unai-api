@@ -63,7 +63,7 @@ async function predict(images: Buffer[]): Promise<string[][]> {
 
   const preprocessedImages = await preprocess(images)
   try {
-    const embeddings = await $fetch("/feature_extractor:predict", { baseURL: config.apiURL, method: "POST", body: { "instances": preprocessedImages } })
+    const embeddings = await $fetch("/feature_extractor:predict", { baseURL: config.apiUrl, method: "POST", body: { "instances": preprocessedImages } })
 
     return postprocess(embeddings['predictions'])
   } catch (error) {
@@ -78,7 +78,7 @@ async function postprocess(embeddings: number[][]): Promise<string[][]> {
     try {
       const result = await qdrant.search("Earrings", {
         vector: embedding,
-        limit: 50,
+        limit: 20,
       });
 
       const products: { lakeId: string, sku: string }[] = result.map(({ payload }) => ({ lakeId: payload.lakeId as string, sku: payload.sku as string }))
