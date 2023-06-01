@@ -143,7 +143,7 @@ async function predict(image: Buffer): Promise<[number, number, number, number, 
 	const [preprocessedImage, dim] = await preprocess(image)
 
 	try {
-		const detections = await $fetch("/detector:predict", { baseURL: config.apiURL, method: "POST", body: { "instances": preprocessedImage } })
+		const detections = await $fetch("/detector:predict", { baseURL: config.apiUrl, method: "POST", body: { "instances": preprocessedImage } })
 		return postprocess(detections['predictions'][0], dim)
 	} catch (error) {
 		throw Error("Failed request Tensorflow Serving /detector:predict ", error)

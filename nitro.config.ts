@@ -13,7 +13,7 @@ export default defineNitroConfig({
     }
   },
   runtimeConfig: {
-    apiURL: process.env.TF_SERVING_URL,
-    corsURL: process.env.CORS_URL,
+    apiUrl: '',
+    corsUrl: '',
   },
 })
