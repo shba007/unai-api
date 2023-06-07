@@ -4,6 +4,7 @@ node_modules
 .cache
 .output
 .env*
+firebase-cred.json
 
 assets/images/*
 !assets/images/.gitkeep

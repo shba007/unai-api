@@ -17,7 +17,7 @@ const PRESET = process.env["PRESET"] == null ? "" : process.env["PRESET"]
 
 // Initialize Firebase Admin SDK
 const firebaseApp = initializeApp({
-	credential: credential.cert(JSON.parse(FIREBASE_CONFIG)),
+	credential: credential.cert(FIREBASE_CONFIG),
 	storageBucket: STORAGE_BUCKET
 })
 const bucket = storage().bucket()
