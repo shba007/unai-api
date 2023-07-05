@@ -2,7 +2,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 
 import { MeiliSearch } from "meilisearch";
-import { QdrantClient } from '@qdrant/js-client-rest';
+import { QdrantClient } from "@qdrant/js-client-rest";
 import sharp from "sharp";
 import { Box, Detection, Product } from "../utils/models";
 
