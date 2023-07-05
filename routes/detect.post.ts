@@ -4,7 +4,6 @@ import { join } from "path";
 import tf from '@tensorflow/tfjs';
 import firebase from 'firebase-admin';
 import { initializeApp } from 'firebase-admin/app';
-import sharp from "sharp";
 
 import { Detection } from '../utils/models';
 import { randomUUID } from "crypto";
@@ -31,9 +30,10 @@ const DELETE_TIMEOUT = 5 * 60 * 1000
 async function saveImage(id: string, image: Buffer): Promise<boolean> {
 	const storage = useStorage()
 	const filePath = path.join(process.cwd(), `assets/images/${id}.jpg`)
+
 	try {
 		storage.setItem(id, "pending")
-		await sharp(image).toFile(filePath)
+		fs.writeFileSync(filePath, image);
 		storage.setItem(id, true)
 		console.log(`Image saved to: ${id}`);
 		return true
