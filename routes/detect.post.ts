@@ -1,12 +1,12 @@
-import { unlinkSync } from "fs";
-import { join } from "path";
+import fs from "node:fs";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
 
-import tf from '@tensorflow/tfjs';
-import firebase from 'firebase-admin';
-import { initializeApp } from 'firebase-admin/app';
+import tf from "@tensorflow/tfjs-node";
+import firebase from "firebase-admin";
+import { initializeApp } from "firebase-admin/app";
 
-import { Detection } from '../utils/models';
-import { randomUUID } from "crypto";
+import { Detection } from "../utils/models";
 
 const { storage, credential } = firebase;
 
@@ -20,9 +20,6 @@ const firebaseApp = initializeApp({
 	storageBucket: STORAGE_BUCKET
 })
 const bucket = storage().bucket()
-
-const path = { join }
-const fs = { unlinkSync }
 
 const DET_DIM: [number, number] = [640, 640]
 const DELETE_TIMEOUT = 5 * 60 * 1000
@@ -177,7 +174,6 @@ async function postprocess(predictions: [number, number, number, number, number,
 
 export default defineEventHandler<Detection>(async (event) => {
 	try {
-
 		const { image } = await readBody<{ image: string }>(event);
 		// Generate a random UUID
 		const id = randomUUID()
@@ -185,12 +181,12 @@ export default defineEventHandler<Detection>(async (event) => {
 		// Convert from base64 encoding to array
 		const imageArray = await base64ToArray(image)
 
-		saveImage(id, imageArray)
-		uploadImage(id, imageArray)
+		const [saving, uploading] = [saveImage(id, imageArray), uploadImage(id, imageArray)]
 
 		// Save and Upload Async
 		const detections = await predict(imageArray)
 		// console.log({ detections });
+
 
 		return {
 			"id": id,
