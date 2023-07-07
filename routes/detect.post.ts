@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 
-import tf from "@tensorflow/tfjs-node";
+import tf from "@tensorflow/tfjs";
 import firebase from "firebase-admin";
 import { initializeApp } from "firebase-admin/app";
 
@@ -121,7 +121,6 @@ function scale(box: number[], dim: [number, number]) {
 	return convertedBox;
 }
 
-
 async function preprocess(image: Buffer): Promise<[number[], [number, number]]> {
 	tf.engine().startScope()
 	// Resize into 640x640
@@ -186,7 +185,6 @@ export default defineEventHandler<Detection>(async (event) => {
 		// Save and Upload Async
 		const detections = await predict(imageArray)
 		// console.log({ detections });
-
 
 		return {
 			"id": id,
