@@ -1,0 +1,64 @@
+name: Nitro CD
+
+on:
+  release:
+    types: [published]
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+env:
+  NITRO_PRESET: ${{ vars.NITRO_PRESET }}
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.x"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Bulid Artifacts
+        run: npm run build
+
+      - name: Wrap Inside a artifact folder
+        run: mkdir artifact && mv .output artifact/.output
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact
+          path: |
+            artifact
+          if-no-files-found: error
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+
+      - name: Display structure of downloaded files
+        run: ls -R -a
+
+      - name: Upload artifact to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: 22
+          # testimonials.yml not added as it is confidencial
+          source: artifact/*
+          target: ~/api-ai/
+          rm: true
+          overwrite: true
+          strip_components: 1
