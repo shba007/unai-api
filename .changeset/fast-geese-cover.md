@@ -1,5 +1,5 @@
 ---
-"ai-service": minor
+'ai-service': minor
 ---
 
 changeset init

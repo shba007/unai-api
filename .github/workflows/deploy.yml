@@ -11,7 +11,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -19,8 +19,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "20.x"
-          cache: "npm"
+          node-version: '20.x'
+          cache: 'npm'
 
       - name: Install Dependencies
         run: npm ci
@@ -41,13 +41,10 @@ jobs:
 
   deploy:
     needs: build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
-
-      - name: Display structure of downloaded files
-        run: ls -R -a
 
       - name: Upload artifact to VPS
         uses: appleboy/scp-action@v0.1.7
@@ -56,9 +53,8 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           port: 22
-          # testimonials.yml not added as it is confidencial
           source: artifact/*
-          target: ~/api-ai/
+          target: ~/api-vision/
           rm: true
           overwrite: true
           strip_components: 1

@@ -1,32 +1,43 @@
 {
-  "name": "ai-service",
-  "description": "Global AI Service",
-  "author": "Shirsendu Bairagi <shirsendu2001@gmail.com>",
+  "name": "api-ai",
   "version": "0.1.0",
-  "private": true,
-  "engines": {
-    "node": "^20.11.0"
-  },
+  "description": "Global REST API Vision Service",
+  "author": "Shirsendu Bairagi <shirsendu2001@gmail.com>",
   "license": "MIT",
+  "type": "module",
+  "private": true,
+  "volta": {
+    "node": "22.12.0"
+  },
+  "engines": {
+    "node": "^20.15.0 || ^22.11.0",
+    "npm": "^10.9.0"
+  },
+  "packageManager": "npm@10.9.2",
   "scripts": {
-    "dev": "nitropack dev",
-    "build": "nitropack build",
-    "preview": "node .output/server/index.mjs",
     "postinstall": "nitropack prepare",
-    "clean": "rm -r .nitro .output",
-    "start": "node .output/server/index.mjs"
+    "dev": "nitro dev",
+    "detect": "gitleaks git --verbose",
+    "lint": "eslint . --fix",
+    "format": "prettier .  --write",
+    "commit": "oco",
+    "build": "nitro build",
+    "preview": "node --env-file=.env .output/server/index.mjs",
+    "start": "node .output/server/index.mjs",
+    "clean": "rm -r .nitro .output"
   },
   "dependencies": {
-    "@changesets/cli": "^2.27.1",
-    "@qdrant/js-client-rest": "^1.9.0",
-    "@tensorflow/tfjs": "^4.19.0",
-    "firebase-admin": "^12.1.0",
-    "meilisearch": "0.39.0",
-    "nitropack": "^2.9.6",
-    "sharp": "^0.33.3"
+    "@qdrant/js-client-rest": "^1.12.0",
+    "@tensorflow/tfjs": "^4.22.0",
+    "firebase-admin": "^12.1.1",
+    "meilisearch": "0.46.0",
+    "nitropack": "^2.10.4",
+    "sharp": "^0.33.5"
   },
   "devDependencies": {
-    "@types/node": "^20.12.11",
-    "changeset": "^0.2.6"
+    "@changesets/cli": "^2.27.10",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.4.2",
+    "untun": "^0.1.3"
   }
 }

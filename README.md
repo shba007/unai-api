@@ -2,8 +2,9 @@
   <img src="./public/logo.png" lt="Logo" width="80" />
 <p>
 
-# AI Service
-> Global AI Service
+# Vision Service
+
+> Global Vision Service
 
 <p align="center">
   <a href="https://uptime.betterstack.com/?utm_source=status_badge">
@@ -11,7 +12,6 @@
   </a>
 </p>
 
-![Landing](public/previews/landing.webp)
-
 # TODO
+
 - Generated Wearied Earrings Photo
