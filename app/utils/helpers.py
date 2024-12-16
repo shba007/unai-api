@@ -12,13 +12,19 @@ from PIL import Image, ImageOps, ExifTags
 PRESET = os.getenv("PRESET")
 PRESET = "deploy" if PRESET == None else PRESET
 
-FIREBASE_CONFIG = os.getenv("FIREBASE_CONFIG")
-FIREBASE_CONFIG = "" if FIREBASE_CONFIG == None else FIREBASE_CONFIG
 
 STORAGE_BUCKET = os.getenv("STORAGE_BUCKET")
 STORAGE_BUCKET = "" if STORAGE_BUCKET == None else STORAGE_BUCKET
 
-initialize_app(credentials.Certificate(json.loads(FIREBASE_CONFIG)), {'storageBucket': STORAGE_BUCKET})
+FIREBASE_CONFIG = ""
+
+with open("firebase-cred.json", "r") as file:
+    FIREBASE_CONFIG = json.loads(file.read())
+
+initialize_app(
+    credentials.Certificate(FIREBASE_CONFIG),
+    {"storageBucket": STORAGE_BUCKET},
+)
 
 bucket = storage.bucket()
 
@@ -28,7 +34,7 @@ def file_exists_check(file_path):
 
 
 def save_file(file_location: str, file_bytes: BytesIO):
-    with open(file_location, 'wb') as f:
+    with open(file_location, "wb") as f:
         content = file_bytes.getvalue()
         f.write(content)
 
@@ -68,6 +74,7 @@ def download_file(source_file_location: str, dest_file_location: str | None = No
 def pad_name(num: int, size: int, pad_with="0"):
     return format(num, pad_with + str(size))
 
+
 # TODO: Test
 # def pad_name(num: int, size: int, pad_with="0"):
 #     format_type = '{'+f":{pad_with}>{size}"+'}'
@@ -86,7 +93,15 @@ normalized -> X /=  Image Width and Y /=  Image Height
 """
 
 
-def convert_box(init_box, image_dim, init_format="XYXY", init_normalized=False, final_format="CCWH", final_normalized=False, isDebug=False):
+def convert_box(
+    init_box,
+    image_dim,
+    init_format="XYXY",
+    init_normalized=False,
+    final_format="CCWH",
+    final_normalized=False,
+    isDebug=False,
+):
     final_box = np.zeros_like(init_box)
     img_width, img_height = image_dim
 
@@ -98,13 +113,13 @@ def convert_box(init_box, image_dim, init_format="XYXY", init_normalized=False, 
 
     # Convert form "XYXY" or "XYWH" to "CCWH"
     if init_format == "XYXY":
-        x_center = (init_box[0] + init_box[2])/2
-        y_center = (init_box[1] + init_box[3])/2
+        x_center = (init_box[0] + init_box[2]) / 2
+        y_center = (init_box[1] + init_box[3]) / 2
         width = init_box[2] - init_box[0]
         height = init_box[3] - init_box[1]
     elif init_format == "XYWH":
-        x_center = init_box[0] + init_box[2]/2
-        y_center = init_box[1] + init_box[3]/2
+        x_center = init_box[0] + init_box[2] / 2
+        y_center = init_box[1] + init_box[3] / 2
         width = init_box[2]
         height = init_box[3]
     else:
@@ -114,18 +129,18 @@ def convert_box(init_box, image_dim, init_format="XYXY", init_normalized=False, 
     #     print("\n",x_center, y_center, width, height)
     # Convert form "CCWH" to "XYXY" or "XYWH"
     if final_format == "XYXY":
-        final_box[0] = x_center - width/2
-        final_box[1] = y_center - height/2
-        final_box[2] = x_center + width/2
-        final_box[3] = y_center + height/2
+        final_box[0] = x_center - width / 2
+        final_box[1] = y_center - height / 2
+        final_box[2] = x_center + width / 2
+        final_box[3] = y_center + height / 2
     elif final_format == "XYWH":
-        final_box[0] = x_center - width/2
-        final_box[1] = y_center - height/2
+        final_box[0] = x_center - width / 2
+        final_box[1] = y_center - height / 2
         final_box[2] = width
         final_box[3] = height
     else:
         final_box = [x_center, y_center, width, height]
-    
+
     # if isDebug:
     #     print({ "final_box": np.array(final_box).tolist() })
 
@@ -134,14 +149,19 @@ def convert_box(init_box, image_dim, init_format="XYXY", init_normalized=False, 
         final_box[1] /= img_height
         final_box[2] /= img_width
         final_box[3] /= img_height
-    
+
     # if isDebug:
     #     print({ "finalBoxNormalize": np.array(final_box).tolist() })
 
     return final_box
 
 
-def resize(input: str | list, dimension: tuple, annotations: list[list[float]] | None = None, background_color=(255, 255, 255)):
+def resize(
+    input: str | list,
+    dimension: tuple,
+    annotations: list[list[float]] | None = None,
+    background_color=(255, 255, 255),
+):
     image = copy.deepcopy(input)
 
     if isinstance(image, str):
@@ -157,7 +177,7 @@ def resize(input: str | list, dimension: tuple, annotations: list[list[float]] |
 
     width, height = image.size
 
-    if (width != height):
+    if width != height:
         max_dim = max(width, height)
         result = Image.new(image.mode, (max_dim, max_dim), background_color)
         result.paste(image, ((max_dim - width) // 2, (max_dim - height) // 2))
@@ -166,14 +186,18 @@ def resize(input: str | list, dimension: tuple, annotations: list[list[float]] |
     image = image.resize(dimension, Image.LANCZOS)
 
     def pipeline(annotation, dimension, max_dim):
-        x_center, y_center, obj_width, obj_height = convert_box(annotation, dimension, init_format="CCWH", init_normalized=True)
+        x_center, y_center, obj_width, obj_height = convert_box(
+            annotation, dimension, init_format="CCWH", init_normalized=True
+        )
 
         # padding added
-        x_center += (max_dim-width)/2
-        y_center += (max_dim-height)/2
+        x_center += (max_dim - width) / 2
+        y_center += (max_dim - height) / 2
 
         annotation = [x_center, y_center, obj_width, obj_height]
-        annotation = convert_box(annotation, (max_dim, max_dim), init_format="CCWH", final_normalized=True)
+        annotation = convert_box(
+            annotation, (max_dim, max_dim), init_format="CCWH", final_normalized=True
+        )
 
         return annotation
 
@@ -189,7 +213,9 @@ def resize(input: str | list, dimension: tuple, annotations: list[list[float]] |
 
 # Crop image
 # Annotations format XYXY
-def crop(images, annotations: list[list[float]], init_format="XYXY", init_normalized=False):
+def crop(
+    images, annotations: list[list[float]], init_format="XYXY", init_normalized=False
+):
     # bbox format x, y, width, height
     img = copy.deepcopy(images)
     bboxes = copy.deepcopy(annotations)
@@ -199,7 +225,13 @@ def crop(images, annotations: list[list[float]], init_format="XYXY", init_normal
     crops = []
 
     for bbox in bboxes:
-        bbox = convert_box(bbox, img.size, init_format=init_format, init_normalized=init_normalized, final_format="XYXY")
+        bbox = convert_box(
+            bbox,
+            img.size,
+            init_format=init_format,
+            init_normalized=init_normalized,
+            final_format="XYXY",
+        )
         crops.append(img.crop(bbox))
     return crops
 
@@ -214,7 +246,7 @@ class Data:
     def __orient__(self, image):
         # Get the EXIF orientation tag
         for orientation in ExifTags.TAGS.keys():
-            if ExifTags.TAGS[orientation] == 'Orientation':
+            if ExifTags.TAGS[orientation] == "Orientation":
                 break
         try:
             exif = dict(image._getexif().items())
@@ -240,38 +272,59 @@ class Data:
         if type == "crop-all" or type == "crop-one":
             annotations = copy.deepcopy(self.annotations[info["id"]])
             annotations = annotations[:1] if type == "crop-one" else annotations
-            crops = crop(self.images[info["id"]], annotations, init_format="CCXY", init_normalized=True)
+            crops = crop(
+                self.images[info["id"]],
+                annotations,
+                init_format="CCXY",
+                init_normalized=True,
+            )
 
             for single_crop, annotation in zip(crops, annotations):
-                single_crop, annotations = resize(single_crop, resize_dim, annotations=[annotation]) if resize_dim else (single_crop, annotation)
+                single_crop, annotations = (
+                    resize(single_crop, resize_dim, annotations=[annotation])
+                    if resize_dim
+                    else (single_crop, annotation)
+                )
 
                 if return_annotations == True:
-                    yield {"id": info["id"],
-                           "photography": info["photography"],
-                           "shot": info["shot"],
-                           "image": single_crop,
-                           "bboxes": annotations}
+                    yield {
+                        "id": info["id"],
+                        "photography": info["photography"],
+                        "shot": info["shot"],
+                        "image": single_crop,
+                        "bboxes": annotations,
+                    }
                 else:
-                    yield {"id": info["id"],
-                           "photography": info["photography"],
-                           "shot": info["shot"],
-                           "image": single_crop}
+                    yield {
+                        "id": info["id"],
+                        "photography": info["photography"],
+                        "shot": info["shot"],
+                        "image": single_crop,
+                    }
 
         else:
             annotations = copy.deepcopy(self.annotations[info["id"]])
-            image, annotations = resize(self.images[info["id"]], resize_dim, annotations=annotations) if resize_dim else (self.images[info["id"]], annotations)
+            image, annotations = (
+                resize(self.images[info["id"]], resize_dim, annotations=annotations)
+                if resize_dim
+                else (self.images[info["id"]], annotations)
+            )
 
             if return_annotations == True:
-                yield {"id": info["id"],
-                       "photography": info["photography"],
-                       "shot": info["shot"],
-                       "image": image,
-                       "bboxes": annotations}
+                yield {
+                    "id": info["id"],
+                    "photography": info["photography"],
+                    "shot": info["shot"],
+                    "image": image,
+                    "bboxes": annotations,
+                }
             else:
-                yield {"id": info["id"],
-                       "photography": info["photography"],
-                       "shot": info["shot"],
-                       "image": image}
+                yield {
+                    "id": info["id"],
+                    "photography": info["photography"],
+                    "shot": info["shot"],
+                    "image": image,
+                }
 
     def __img_pipeline__(self, input, type, resize_dim, return_annotations):
         id, image = input
@@ -279,33 +332,44 @@ class Data:
             if type == "crop-all" or type == "crop-one":
                 annotations = copy.deepcopy(self.annotations[id])
                 annotations = annotations[:1] if type == "crop-one" else annotations
-                crops = crop(self.images[id], annotations, init_format="CCXY", init_normalized=True)
+                crops = crop(
+                    self.images[id],
+                    annotations,
+                    init_format="CCXY",
+                    init_normalized=True,
+                )
 
                 for single_crop, annotation in zip(crops, annotations):
-                    single_crop, annotations = resize(single_crop, resize_dim, annotations=[annotation]) if resize_dim else (single_crop, annotation)
+                    single_crop, annotations = (
+                        resize(single_crop, resize_dim, annotations=[annotation])
+                        if resize_dim
+                        else (single_crop, annotation)
+                    )
 
                     if return_annotations == True:
-                        yield {"id": id,
-                               "image": single_crop,
-                               "bboxes": annotations}
+                        yield {"id": id, "image": single_crop, "bboxes": annotations}
                     else:
-                        yield {"id": id,
-                               "image": single_crop}
+                        yield {"id": id, "image": single_crop}
             else:
                 if self.annotations == None:
                     annotations = None
-                    image = resize(self.images[id], resize_dim) if resize_dim else self.images[id]
+                    image = (
+                        resize(self.images[id], resize_dim)
+                        if resize_dim
+                        else self.images[id]
+                    )
                 else:
                     annotations = copy.deepcopy(self.annotations[id])
-                    image, annotations = resize(self.images[id], resize_dim, annotations=annotations) if resize_dim else (self.images[id], annotations)
+                    image, annotations = (
+                        resize(self.images[id], resize_dim, annotations=annotations)
+                        if resize_dim
+                        else (self.images[id], annotations)
+                    )
 
                 if return_annotations == True:
-                    yield {"id": id,
-                           "image": image,
-                           "bboxes": annotations}
+                    yield {"id": id, "image": image, "bboxes": annotations}
                 else:
-                    yield {"id": id,
-                           "image": image}
+                    yield {"id": id, "image": image}
         except:
             print(f"Error in {id}")
 
@@ -316,17 +380,33 @@ class Data:
 
         return [item for item in result]
 
-    def get_images(self, select=None, type="full", resize_dim=None, return_annotations=False):
+    def get_images(
+        self, select=None, type="full", resize_dim=None, return_annotations=False
+    ):
         if self.meta == None:
-            lst = map(lambda x: self.__img_pipeline__(x, type, resize_dim, return_annotations), self.images.items())
+            lst = map(
+                lambda x: self.__img_pipeline__(
+                    x, type, resize_dim, return_annotations
+                ),
+                self.images.items(),
+            )
         else:
             if select == None:
                 # print("Id", self.id)
                 filtered_images = self.meta["images"]
             elif select == "face":
-                filtered_images = [image for image in self.meta["images"] if image["shot"] == "model" or image["shot"] == "ear" or image["shot"] == "mannequin"]
+                filtered_images = [
+                    image
+                    for image in self.meta["images"]
+                    if image["shot"] == "model"
+                    or image["shot"] == "ear"
+                    or image["shot"] == "mannequin"
+                ]
 
-            lst = map(lambda x: self.__pipeline__(x, type, resize_dim, return_annotations), filtered_images)
+            lst = map(
+                lambda x: self.__pipeline__(x, type, resize_dim, return_annotations),
+                filtered_images,
+            )
 
         return [item for sublist in lst for item in sublist]
 

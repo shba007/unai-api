@@ -3,7 +3,7 @@ import json
 import requests
 
 import tensorflow as tf
-from utils.helpers import convert_box, resize
+from ..utils.helpers import convert_box, resize
 
 DET_DIM = (640, 640)
 CLASS_DIM = (256, 256)
@@ -14,29 +14,29 @@ TF_SERVING_URL = "" if TF_SERVING_URL == None else TF_SERVING_URL
 
 def fetch(path: str, method: str, body=None) -> dict:
     url = f"{TF_SERVING_URL}{path}"
-    headers = {'Content-Type': 'application/json'}
+    headers = {"Content-Type": "application/json"}
 
     if body != None:
         data = json.dumps(body)
 
-        if method == 'GET':
+        if method == "GET":
             response = requests.get(url, headers=headers, data=data)
-        elif method == 'POST':
+        elif method == "POST":
             response = requests.post(url, headers=headers, data=data)
-        elif method == 'PUT':
+        elif method == "PUT":
             response = requests.put(url, headers=headers, data=data)
-        elif method == 'DELETE':
+        elif method == "DELETE":
             response = requests.delete(url, headers=headers, data=data)
         else:
             response = requests.get(url, headers=headers, data=data)
     else:
-        if method == 'GET':
+        if method == "GET":
             response = requests.get(url, headers=headers)
-        elif method == 'POST':
+        elif method == "POST":
             response = requests.post(url, headers=headers)
-        elif method == 'PUT':
+        elif method == "PUT":
             response = requests.put(url, headers=headers)
-        elif method == 'DELETE':
+        elif method == "DELETE":
             response = requests.delete(url, headers=headers)
         else:
             response = requests.get(url, headers=headers)
@@ -48,16 +48,25 @@ def fetch(path: str, method: str, body=None) -> dict:
         raise ValueError({"status": response.status_code, "message": response.json()})
 
 
-class Detector():
+class Detector:
     def __init__(self, dim=None, output_format="XYXY") -> None:
         self.dim = dim
         self.output_format = output_format
 
         return
 
-    def __nms__(self, bboxes, score_threshold=0.5, iou_threshold=0.5, max_output_size=100):
+    def __nms__(
+        self, bboxes, score_threshold=0.5, iou_threshold=0.5, max_output_size=100
+    ):
         def convert(bbox):
-            xmin, ymin, xmax, ymax = convert_box(bbox, DET_DIM, init_format="CCWH", init_normalized=False, final_format="XYXY", final_normalized=True)
+            xmin, ymin, xmax, ymax = convert_box(
+                bbox,
+                DET_DIM,
+                init_format="CCWH",
+                init_normalized=False,
+                final_format="XYXY",
+                final_normalized=True,
+            )
             return [ymin, xmin, ymax, xmax]
 
         bboxes = tf.convert_to_tensor(bboxes).numpy()
@@ -69,7 +78,13 @@ class Detector():
 
         converted_boxes = list(map(convert, boxes))
 
-        selected_indices = tf.image.non_max_suppression(converted_boxes, confs, max_output_size=max_output_size, iou_threshold=iou_threshold, score_threshold=score_threshold)
+        selected_indices = tf.image.non_max_suppression(
+            converted_boxes,
+            confs,
+            max_output_size=max_output_size,
+            iou_threshold=iou_threshold,
+            score_threshold=score_threshold,
+        )
         bboxes = tf.gather(bboxes, selected_indices)
 
         return bboxes
@@ -77,12 +92,12 @@ class Detector():
     def __scale__(self, box, dim):
         # print("__scale__ bbox, dim", box.numpy().tolist(), dim.numpy().tolist())
         """
-        format x_center, y_center, width, height in not normalized for 640, 640 image -> 
+        format x_center, y_center, width, height in not normalized for 640, 640 image ->
         format x_center, y_center, width, height in normalized for self.dim image
         """
         x_center, y_center, width, height = box[:4]
 
-        factor = tf.cast(max(dim)/640, dtype=tf.float32)
+        factor = tf.cast(max(dim) / 640, dtype=tf.float32)
         offset = tf.cast(abs(dim[0] - dim[1]), dtype=tf.float32)
 
         x_center *= factor
@@ -92,9 +107,9 @@ class Detector():
 
         # print("before", x_center, y_center, width, height)
         if dim[0] > dim[1]:
-            y_center -= offset/2
+            y_center -= offset / 2
         elif dim[0] < dim[1]:
-            x_center -= offset/2
+            x_center -= offset / 2
 
         # print("after", x_center, y_center, width, height)
         scaled_box = tf.stack([x_center, y_center, width, height])
@@ -102,7 +117,14 @@ class Detector():
         dim = tf.cast(dim, tf.float32)
 
         # print("scaled_box", scaled_box.numpy().tolist())
-        converted_box = convert_box(scaled_box, dim, init_format="CCWH", final_format=self.output_format,final_normalized=True, isDebug=True)
+        converted_box = convert_box(
+            scaled_box,
+            dim,
+            init_format="CCWH",
+            final_format=self.output_format,
+            final_normalized=True,
+            isDebug=True,
+        )
         converted_box = tf.convert_to_tensor(converted_box)
         # print("converted_box", converted_box.numpy().tolist())
         return converted_box
@@ -141,12 +163,20 @@ class Detector():
         if self.dim == None:
             dim = tf.map_fn((lambda x: x.shape[:2][::-1]), inputs, dtype=tf.int32)
         else:
-            dim = tf.map_fn((lambda x: tf.convert_to_tensor(self.dim)), inputs, dtype=tf.int32)
+            dim = tf.map_fn(
+                (lambda x: tf.convert_to_tensor(self.dim)), inputs, dtype=tf.int32
+            )
 
-        predictions = fetch('/detector:predict', 'POST', {"instances": images.numpy().tolist()})['predictions']
+        predictions = fetch(
+            "/detector:predict", "POST", {"instances": images.numpy().tolist()}
+        )["predictions"]
         predictions = tf.convert_to_tensor(predictions)
 
-        detections = tf.map_fn(lambda x: self.__postprocess__(x[0], x[1]), (predictions, dim), fn_output_signature=(tf.float32))
+        detections = tf.map_fn(
+            lambda x: self.__postprocess__(x[0], x[1]),
+            (predictions, dim),
+            fn_output_signature=(tf.float32),
+        )
         # detections = tf.round(detections)
         detections = detections.numpy().tolist()
 
@@ -158,7 +188,16 @@ class OneShotClassifier:
         return
 
     def predict(self, inputs) -> list:
-        inputs = list(map(lambda class_img: tf.keras.utils.img_to_array(resize(class_img, CLASS_DIM)), inputs))
+        inputs = list(
+            map(
+                lambda class_img: tf.keras.utils.img_to_array(
+                    resize(class_img, CLASS_DIM)
+                ),
+                inputs,
+            )
+        )
         inputs = tf.convert_to_tensor(inputs)
-        features = fetch('/feature_extractor:predict', 'POST', {"instances": inputs.numpy().tolist()})['predictions']
+        features = fetch(
+            "/feature_extractor:predict", "POST", {"instances": inputs.numpy().tolist()}
+        )["predictions"]
         return features

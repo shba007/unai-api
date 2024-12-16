@@ -1,6 +1,21 @@
+# FastAPI dev/build outputs
 __pycache__
+.ruff_cache
 
+# Python dependencies
+.venv
+
+# Logs
+logs
+*.log
+
+# Misc
+.DS_Store
+.fleet
+.idea
+
+# Env files
 .env*
+!.env.example
 
-assets/images/*
-!assets/images/.gitkeep
+firebase-cred.json
