@@ -78,7 +78,7 @@ function deleteImage(id: string): boolean {
 
 async function nms(boxes: [number, number, number, number, number, number][], maxOutputSize = 100, iouThreshold = 0.75, scoreThreshold = 0.5) {
   const boxesTensor = tf.tensor2d(boxes.map((box) => convertBox(box, DET_DIM, 'CCWH', false, 'XYXY', true)).map((box) => box.slice(0, 4)))
-  const confsTensor = tf.tensor1d(boxes.map((box) => box[box.length - 2]))
+  const confsTensor = tf.tensor1d(boxes.map((box) => box.at(-2)))
 
   const selectedIndices = tf.image.nonMaxSuppression(boxesTensor, confsTensor, maxOutputSize, iouThreshold, scoreThreshold)
   const selectedBoxes = tf.gather(boxes, selectedIndices)
@@ -86,10 +86,11 @@ async function nms(boxes: [number, number, number, number, number, number][], ma
 }
 
 /*
-	format x_center, y_center, width, height in not normalized for 640, 640 image ->
-	format x_center, y_center, width, height in normalized for self.dim image
+  format x_center, y_center, width, height in not normalized for 640, 640 image ->
+  format x_center, y_center, width, height in normalized for self.dim image
  */
 function scale(box: number[], dim: [number, number]) {
+  // eslint-disable-next-line prefer-const
   let [xCenter, yCenter, width, height, ..._] = box
 
   const factor = Math.max(...dim) / Math.max(...DET_DIM)
@@ -133,7 +134,7 @@ async function predict(image: Buffer): Promise<[number, number, number, number, 
     const detections = await $fetch('/detector:predict', { baseURL: config.apiUrl, method: 'POST', body: { instances: preprocessedImage } })
     return postprocess(detections['predictions'][0], dim)
   } catch (error) {
-    throw Error('Failed request Tensorflow Serving /detector:predict ', error)
+    throw new Error('Failed request Tensorflow Serving /detector:predict ', error)
   }
 }
 

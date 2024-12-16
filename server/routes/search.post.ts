@@ -1,5 +1,5 @@
-import { readFileSync } from 'fs'
-import { join } from 'path'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 import { MeiliSearch } from 'meilisearch'
 import { QdrantClient } from '@qdrant/js-client-rest'
@@ -26,7 +26,7 @@ async function openImage(id: string): Promise<Buffer> {
   try {
     const imageBuffer = readFileSync(filePath)
     return sharp(imageBuffer).toBuffer()
-  } catch (error) {
+  } catch {
     throw createError({ statusCode: 404, statusMessage: 'File not found' })
   }
 }
@@ -69,7 +69,7 @@ async function predict(images: Buffer[]): Promise<string[][]> {
 
     return postprocess(embeddings['predictions'])
   } catch (error) {
-    throw Error('Failed request Tensorflow Serving /feature_extractor:predict', error)
+    throw new Error('Failed request Tensorflow Serving /feature_extractor:predict', error)
   }
 }
 
@@ -86,11 +86,11 @@ async function postprocess(embeddings: number[][]): Promise<string[][]> {
 
         const products: { lakeId: string; sku: string }[] = result.map(({ payload }) => ({ lakeId: payload.lakeId as string, sku: payload.sku as string }))
         const filteredProductSKUs = new Set<string>()
-        products.filter((product) => product.sku !== '').forEach((product) => filteredProductSKUs.add(product.sku))
+        for (const product of products.filter((product) => product.sku !== '')) filteredProductSKUs.add(product.sku)
 
         filteredProductsSKUs.push([...filteredProductSKUs])
       } catch (error) {
-        throw Error('Failed request Qdrant', error)
+        throw new Error('Failed request Qdrant', error)
       }
     })
   )
@@ -142,7 +142,7 @@ export default defineEventHandler<any>(async (event) => {
               ),
           }
         } catch (error) {
-          throw Error('Failed request MeiliSearch', error)
+          throw new Error('Failed request MeiliSearch', error)
         }
       })
     )

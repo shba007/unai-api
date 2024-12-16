@@ -1,9 +1,13 @@
 {
-  "name": "api-ai",
+  "name": "unai-api",
   "version": "0.1.0",
-  "description": "Global REST API Vision Service",
+  "description": "Global REST API AI Service",
   "author": "Shirsendu Bairagi <shirsendu2001@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shba007/unai-api.git"
+  },
   "type": "module",
   "private": true,
   "volta": {
@@ -11,32 +15,40 @@
   },
   "engines": {
     "node": "^20.15.0 || ^22.11.0",
-    "npm": "^10.9.0"
+    "pnpm": "^9.15.0"
   },
-  "packageManager": "npm@10.9.2",
+  "packageManager": "pnpm@9.15.0+sha512.76e2379760a4328ec4415815bcd6628dee727af3779aaa4c914e3944156c4299921a89f976381ee107d41f12cfa4b66681ca9c718f0668fa0831ed4c6d8ba56c",
   "scripts": {
-    "postinstall": "nitropack prepare",
+    "prepare": "husky",
     "dev": "nitro dev",
     "detect": "gitleaks git --verbose",
     "lint": "eslint . --fix",
-    "format": "prettier .  --write",
+    "format": "prettier . --write",
     "commit": "oco",
     "build": "nitro build",
     "preview": "node --env-file=.env .output/server/index.mjs",
     "start": "node .output/server/index.mjs",
-    "clean": "rm -r .nitro .output"
+    "clean": "rm -r .nitro .output",
+    "docker:build": "docker build --build-arg VERSION_TAG=dev -t unai-api:dev .",
+    "docker:start": "docker run --detach --name unai-api-dev --env-file .env.prod -p 2300:3000 unai-api:dev",
+    "tunnel": "untun tunnel --port 2300 http://localhost:2300"
   },
   "dependencies": {
     "@qdrant/js-client-rest": "^1.12.0",
     "@tensorflow/tfjs": "^4.22.0",
-    "firebase-admin": "^12.1.1",
+    "firebase-admin": "^13.0.1",
     "meilisearch": "0.46.0",
     "nitropack": "^2.10.4",
     "sharp": "^0.33.5"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.10",
+    "@commitlint/cli": "^19.6.1",
+    "@commitlint/config-conventional": "^19.6.0",
     "eslint-config-prettier": "^9.1.0",
+    "eslint-config-unjs": "^0.4.2",
+    "husky": "^9.1.7",
+    "opencommit": "^3.2.5",
     "prettier": "^3.4.2",
     "untun": "^0.1.3"
   }

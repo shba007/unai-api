@@ -1,4 +1,5 @@
 # Nitro dev/build outputs
+.data
 .output
 .nitro
 .cache
@@ -11,10 +12,13 @@ node_modules
 logs
 *.log
 
-# Local env files
+# Misc
+.DS_Store
+.fleet
+.idea
+
+# Env files
 .env*
 !.env.example
 
 firebase-cred.json
-assets/images/*
-!assets/images/.gitkeep

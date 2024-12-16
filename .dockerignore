@@ -8,10 +8,6 @@ dist
 # Node dependencies
 node_modules
 
-# Package Manager
-package.json
-pnpm-lock.yaml
-
 # Logs
 logs
 *.log
@@ -21,6 +17,9 @@ logs
 .fleet
 .idea
 
-# Env files
-.env*
-!.env.example
+# Local env files
+.env
+.env.*
+
+.dockerignore
+Dockerfile

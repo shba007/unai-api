@@ -9,7 +9,7 @@ function convertBox(
   finalNormalized = false,
   isDebug = false
 ): [number, number, number, number] {
-  const finalBox = new Array(4).fill(0) as [number, number, number, number]
+  const finalBox = Array.from({ length: 4 }).fill(0) as [number, number, number, number]
   const [imgWidth, imgHeight] = imageDim
 
   if (initNormalized) {
