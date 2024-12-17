@@ -9,7 +9,6 @@ dependencies = [
     "meilisearch>=0.33.0",
     "pillow>=11.0.0",
     "tensorflow-cpu>=2.18.0",
-    "tensorflow>=2.18.0",
     "weaviate-client>=3.26.7,<4.0.0",
     "firebase-admin>=6.6.0",
 ]
@@ -24,3 +23,5 @@ dev = [
 dev = "fastapi dev app/main.py"
 lint = "ruff check --fix"
 format = "ruff format"
+docker-build = "docker build --build-arg VERSION_TAG=dev -t unai-api-fastapi:dev ."
+docker-start = "docker run --detach --name unai-api-fastapi-dev --env-file .env.prod -p 2300:8000 unai-api-fastapi:dev"
