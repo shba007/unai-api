@@ -10,11 +10,11 @@ import numpy as np
 from PIL import Image, ImageOps, ExifTags
 
 PRESET = os.getenv("PRESET")
-PRESET = "deploy" if PRESET == None else PRESET
+PRESET = "deploy" if PRESET is None else PRESET
 
 
 STORAGE_BUCKET = os.getenv("STORAGE_BUCKET")
-STORAGE_BUCKET = "" if STORAGE_BUCKET == None else STORAGE_BUCKET
+STORAGE_BUCKET = "" if STORAGE_BUCKET is None else STORAGE_BUCKET
 
 FIREBASE_CONFIG = ""
 
@@ -49,7 +49,7 @@ def upload_file(source_file_location: str, dest_file_location: str | None = None
     if PRESET != "deploy":
         return
 
-    if dest_file_location == None:
+    if dest_file_location is None:
         dest_file_location = source_file_location
 
     blob = bucket.blob(dest_file_location)
@@ -63,7 +63,7 @@ def download_file(source_file_location: str, dest_file_location: str | None = No
     if file_exists_check(dest_file_location):
         return
 
-    if dest_file_location == None:
+    if dest_file_location is None:
         dest_file_location = source_file_location
 
     blob = bucket.blob(source_file_location)
@@ -286,7 +286,7 @@ class Data:
                     else (single_crop, annotation)
                 )
 
-                if return_annotations == True:
+                if return_annotations is True:
                     yield {
                         "id": info["id"],
                         "photography": info["photography"],
@@ -310,7 +310,7 @@ class Data:
                 else (self.images[info["id"]], annotations)
             )
 
-            if return_annotations == True:
+            if return_annotations is True:
                 yield {
                     "id": info["id"],
                     "photography": info["photography"],
@@ -346,12 +346,12 @@ class Data:
                         else (single_crop, annotation)
                     )
 
-                    if return_annotations == True:
+                    if return_annotations is True:
                         yield {"id": id, "image": single_crop, "bboxes": annotations}
                     else:
                         yield {"id": id, "image": single_crop}
             else:
-                if self.annotations == None:
+                if self.annotations is None:
                     annotations = None
                     image = (
                         resize(self.images[id], resize_dim)
@@ -366,7 +366,7 @@ class Data:
                         else (self.images[id], annotations)
                     )
 
-                if return_annotations == True:
+                if return_annotations is True:
                     yield {"id": id, "image": image, "bboxes": annotations}
                 else:
                     yield {"id": id, "image": image}
@@ -383,7 +383,7 @@ class Data:
     def get_images(
         self, select=None, type="full", resize_dim=None, return_annotations=False
     ):
-        if self.meta == None:
+        if self.meta is None:
             lst = map(
                 lambda x: self.__img_pipeline__(
                     x, type, resize_dim, return_annotations
@@ -391,7 +391,7 @@ class Data:
                 self.images.items(),
             )
         else:
-            if select == None:
+            if select is None:
                 # print("Id", self.id)
                 filtered_images = self.meta["images"]
             elif select == "face":

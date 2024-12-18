@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from PIL import Image
 import tensorflow as tf
 
-from ..utils.helpers import Data, save_file, upload_file
+from ..utils.helpers_obj import Data, save_file, upload_file
 from ..utils.models import Detector
 
 router = APIRouter(
@@ -47,7 +47,7 @@ async def detect(background_tasks: BackgroundTasks, request: ImageRequest):
         background_tasks.add_task(upload_file, file_path, f"images/{id}.jpg")
 
         data = Data("temp-1")
-        data.images = {} if data.images == None else data.images
+        data.images = {} if data.images is None else data.images
         data.images[id] = image
 
         img = data.get_images()

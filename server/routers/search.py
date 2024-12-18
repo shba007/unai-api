@@ -8,7 +8,7 @@ from PIL import Image
 import weaviate as Weaviate
 import meilisearch as Meilisearch
 
-from ..utils.helpers import Data
+from ..utils.helpers_obj import Data
 from ..utils.models import OneShotClassifier
 
 router = APIRouter(
@@ -20,15 +20,16 @@ router = APIRouter(
 classifier = OneShotClassifier()
 
 WEAVIATE_URL = os.getenv("WEAVIATE_URL")
-WEAVIATE_URL = "127.0.0.1" if WEAVIATE_URL == None else WEAVIATE_URL
+WEAVIATE_URL = "127.0.0.1" if WEAVIATE_URL is None else WEAVIATE_URL
 
 MEILISEARCH_URL = os.getenv("MEILISEARCH_URL")
-MEILISEARCH_URL = "127.0.0.1" if MEILISEARCH_URL == None else MEILISEARCH_URL
+MEILISEARCH_URL = "127.0.0.1" if MEILISEARCH_URL is None else MEILISEARCH_URL
 MEILISEARCH_API_KEY = os.getenv("MEILISEARCH_SECRET")
-MEILISEARCH_API_KEY = "" if MEILISEARCH_API_KEY == None else MEILISEARCH_API_KEY
+MEILISEARCH_API_KEY = "" if MEILISEARCH_API_KEY is None else MEILISEARCH_API_KEY
 
 weaviate = None
 meilisearch = None
+
 
 class Box(BaseModel):
     x: float
@@ -62,8 +63,12 @@ def format(data):
 @router.post("/")
 async def search(request: ImageRequest):
     try:
-        weaviate = Weaviate.Client(url=WEAVIATE_URL) if weaviate == None else weaviate
-        meilisearch = Meilisearch.Client(MEILISEARCH_URL, MEILISEARCH_API_KEY) if meilisearch == None else meilisearch
+        weaviate = Weaviate.Client(url=WEAVIATE_URL) if weaviate is None else weaviate
+        meilisearch = (
+            Meilisearch.Client(MEILISEARCH_URL, MEILISEARCH_API_KEY)
+            if meilisearch is None
+            else meilisearch
+        )
 
         id = request.id
         file_path = f"assets/images/{id}.jpg"

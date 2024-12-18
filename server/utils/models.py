@@ -3,20 +3,20 @@ import json
 import requests
 
 import tensorflow as tf
-from ..utils.helpers import convert_box, resize
+from ..utils.helpers_obj import convert_box, resize
 
 DET_DIM = (640, 640)
 CLASS_DIM = (256, 256)
 
 TF_SERVING_URL = os.getenv("TF_SERVING_URL")
-TF_SERVING_URL = "" if TF_SERVING_URL == None else TF_SERVING_URL
+TF_SERVING_URL = "" if TF_SERVING_URL is None else TF_SERVING_URL
 
 
 def fetch(path: str, method: str, body=None) -> dict:
     url = f"{TF_SERVING_URL}{path}"
     headers = {"Content-Type": "application/json"}
 
-    if body != None:
+    if body is not None:
         data = json.dumps(body)
 
         if method == "GET":
@@ -160,7 +160,7 @@ class Detector:
         # images = tf.cast(images, tf.float32)/255.0
         images = tf.expand_dims(images, axis=0)
 
-        if self.dim == None:
+        if self.dim is None:
             dim = tf.map_fn((lambda x: x.shape[:2][::-1]), inputs, dtype=tf.int32)
         else:
             dim = tf.map_fn(

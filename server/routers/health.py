@@ -6,6 +6,7 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+
 @router.get("/")
 async def get_health():
-    return {"status": "OK", "version":"dev"}
+    return {"status": "OK", "version": "dev"}
