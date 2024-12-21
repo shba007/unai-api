@@ -9,4 +9,5 @@ router = APIRouter(
 
 @router.get("/")
 async def get_health():
-    return {"status": "OK", "version": "dev"}
+    # Display all app configs
+    return {"status": "OK"}

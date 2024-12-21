@@ -18,4 +18,9 @@ logs
 .env*
 !.env.example
 
+# Assets files
+assets/*
+!assets/**/.gitkeep
+models
+
 firebase-cred.json

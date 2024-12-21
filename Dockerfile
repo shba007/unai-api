@@ -23,10 +23,11 @@ ARG VERSION
 ARG BUILD_TIME
 
 ENV PYTHON_ENV=production
-
 ENV PATH="/app/.venv/bin:$PATH"
 
-COPY --from=builder /app /app
+COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /app/assets /app/assets
+COPY --from=builder /app/server /app/server
 
 WORKDIR /app
 

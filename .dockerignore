@@ -1,3 +1,8 @@
+# Git/Github
+.git
+.github
+.gitignore
+
 # FastAPI dev/build outputs
 __pycache__
 .ruff_cache
@@ -17,3 +22,14 @@ logs
 # Env files
 .env*
 !.env.example
+
+# Dockerfile
+.dockerignore
+Dockerfile
+
+# Assets files
+assets
+!assets/**/.gitkeep
+models
+
+firebase-cred.json

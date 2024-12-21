@@ -1,0 +1,20 @@
+name: 'unai'
+services:
+  api:
+      build: .
+      env_file:
+          - .env.prod
+      ports:
+          - 2300:8000
+
+  tf-serve:
+      image: "tensorflow/serving:2.18.0"
+      ports:
+          - 1510:8500
+          - 1511:8501
+      volumes:
+          - type: bind
+            source: models
+            target: /models
+      tty: true
+      command: --model_config_file=/models/models.config
