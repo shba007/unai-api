@@ -2,4 +2,4 @@
 'unai-api': minor
 ---
 
-changeset init
+chore: changeset init
