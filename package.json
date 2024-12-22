@@ -17,7 +17,7 @@
     "node": "^20.15.0 || ^22.11.0",
     "pnpm": "^9.15.0"
   },
-  "packageManager": "pnpm@9.15.0+sha512.76e2379760a4328ec4415815bcd6628dee727af3779aaa4c914e3944156c4299921a89f976381ee107d41f12cfa4b66681ca9c718f0668fa0831ed4c6d8ba56c",
+  "packageManager": "pnpm@9.15.1",
   "scripts": {
     "prepare": "husky",
     "dev": "nitro dev",
@@ -36,19 +36,18 @@
   "dependencies": {
     "@qdrant/js-client-rest": "^1.12.0",
     "@tensorflow/tfjs": "^4.22.0",
-    "firebase-admin": "^13.0.1",
+    "firebase-admin": "^13.0.2",
     "meilisearch": "0.46.0",
     "nitropack": "^2.10.4",
     "sharp": "^0.33.5"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.27.10",
+    "@changesets/cli": "^2.27.11",
     "@commitlint/cli": "^19.6.1",
     "@commitlint/config-conventional": "^19.6.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-unjs": "^0.4.2",
     "husky": "^9.1.7",
-    "opencommit": "^3.2.5",
     "prettier": "^3.4.2",
     "untun": "^0.1.3"
   }
