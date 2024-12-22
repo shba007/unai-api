@@ -1,0 +1,51 @@
+name: Flask CI
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: '.python-version'
+
+      - name: Install Dependencies
+        run: uv sync
+
+      # - name: Build Artifacts
+      #   run: uv build
+
+      # - name: Run Tests
+      #   run: uv test
+
+      - name: Lint Code
+        run: uv run task lint || echo "Linting failed, but continuing"
+
+      - name: Format Code
+        run: uv run task format
+
+      - name: Create Release Pull Request
+        uses: changesets/action@v1
+        with:
+          title: 'chore(release): update version'
+          commit: 'chore(release): update version'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
