@@ -1,5 +1,5 @@
 ---
-'ai-service': minor
+'unai-api': minor
 ---
 
 changeset init
