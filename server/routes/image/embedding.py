@@ -2,11 +2,13 @@ import asyncio
 import json
 import math
 from typing import List, Tuple
-from fastapi import APIRouter, HTTPException
+from fastapi import HTTPException
 from pydantic import BaseModel
 import httpx
 import numpy as np
 from PIL import Image
+
+from .router import router
 
 from server.core.config import config
 from server.utils.convertBoxFormat import convert_box_format
@@ -38,7 +40,7 @@ async def predict(image: np.ndarray, boxes: list):
 
     try:
         detections = httpx.post(
-            f"{config.tensorflow_api_url}/v1/models/feature_extractor:predict",
+            f"{config.tensorflow_api_url}/v1/models/custom-embedder:predict",
             data=data,
         )
 
@@ -46,10 +48,10 @@ async def predict(image: np.ndarray, boxes: list):
 
         return embeddings
     except Exception as error:
-        print("Failed request Tensorflow Serving /feature_extractor:predict", error)
+        print("Failed request Tensorflow Serving /custom-embedder:predict", error)
         raise HTTPException(
             status_code=500,
-            detail="Failed request Tensorflow Serving /feature_extractor:predict",
+            detail="Failed request Tensorflow Serving /custom-embedder:predict",
         )
 
 
@@ -83,17 +85,9 @@ async def crop_image(
     return np.array(cropped_images)
 
 
-router = APIRouter(
-    prefix="/search",
-    tags=["search"],
-    responses={404: {"description": "Not found"}},
-)
-
-
 class Object(BaseModel):
     box: List[float]
     confidence: float
-    category: str
 
 
 class RequestBody(BaseModel):
@@ -101,16 +95,16 @@ class RequestBody(BaseModel):
     objects: List[Object]
 
 
-@router.post("/")
-async def search(request: RequestBody):
+@router.post("/embedding")
+async def get_embedding(request: RequestBody):
     try:
         image = image_load(request.id)
 
-        searches = await predict(
+        embeddings = await predict(
             image, list(map(lambda object: object.box, request.objects))
         )
 
-        return {"id": request.id, "searches": searches}
+        return {"id": request.id, "embeddings": embeddings}
     except HTTPException as error:
         print("API search POST", error)
         raise error

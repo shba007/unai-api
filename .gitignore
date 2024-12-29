@@ -1,8 +1,6 @@
-# FastAPI dev/build outputs
+# Python dependencies
 __pycache__
 .ruff_cache
-
-# Python dependencies
 .venv
 
 # Logs

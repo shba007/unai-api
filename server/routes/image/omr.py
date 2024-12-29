@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import HTTPException
 from nanoid import generate
 from pydantic import BaseModel
+
+from .router import router
 
 from server.utils.base64ToArray import base64_to_array
 from server.utils.imageSave import image_save
@@ -11,18 +13,12 @@ from server.utils.omrDetectQR import detect_qr
 from server.utils.omrExtractData import extract_data
 from server.utils.omrHighlights import get_highlights
 
-router = APIRouter(
-    prefix="/omr",
-    tags=["omr"],
-    responses={404: {"description": "Not found"}},
-)
-
 
 class RequestBody(BaseModel):
     image: str
 
 
-@router.post("/")
+@router.post("/omr")
 async def omr(request: RequestBody):
     try:
         id = generate()

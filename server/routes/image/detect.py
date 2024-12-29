@@ -1,10 +1,12 @@
 import json
 from typing import List, Tuple
-from fastapi import APIRouter, HTTPException
+from fastapi import HTTPException
+from pydantic import BaseModel
 import httpx
 from nanoid import generate
 import numpy as np
-from pydantic import BaseModel
+
+from .router import router
 
 from server.core.config import config
 from server.utils.base64ToArray import base64_to_array
@@ -83,31 +85,24 @@ def predict(image: np.ndarray):
 
     try:
         detections = httpx.post(
-            f"{config.tensorflow_api_url}/v1/models/detector:predict",
+            f"{config.tensorflow_api_url}/v1/models/custom-detector:predict",
             data=data,
         )
 
         return postprocess(detections.json()["predictions"][0], dim)
     except Exception as error:
-        print("Failed request Tensorflow Serving /detector:predict", error)
+        print("Failed request Tensorflow Serving /custom-detector:predict", error)
         raise HTTPException(
             status_code=500,
-            detail="Failed request Tensorflow Serving /detector:predict",
+            detail="Failed request Tensorflow Serving /custom-detector:predict",
         )
-
-
-router = APIRouter(
-    prefix="/detect",
-    tags=["detect"],
-    responses={404: {"description": "Not found"}},
-)
 
 
 class RequestBody(BaseModel):
     image: str
 
 
-@router.post("/")
+@router.post("/detect")
 async def detect(request: RequestBody):
     try:
         id = generate()

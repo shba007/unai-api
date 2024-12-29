@@ -14,13 +14,16 @@ dependencies = [
     "pydantic>=2.10.4",
     "scipy>=1.14.1",
     "nanoid>=2.0.0",
+    "transformers[torch]>=4.47.1",
+    "timm>=1.0.12",
+    "einops>=0.8.0",
 ]
 
 [dependency-groups]
 dev = [
     "changelog-gen>=0.13.5",
     "pytest>=8.3.4",
-    "ruff>=0.8.3",
+    "ruff>=0.8.4",
     "taskipy>=1.14.1",
 ]
 
