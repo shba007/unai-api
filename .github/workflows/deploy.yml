@@ -1,4 +1,4 @@
-name: Flask CD
+name: Fastapi CD
 run-name: ${{ github.ref_name }}
 
 on:
@@ -102,21 +102,6 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
-            # Pull new image
-            docker pull ${{ needs.build_web.outputs.image_name }}
-
-            # Stop the existing container
-            docker stop ${{ needs.build_web.outputs.image_title }} || true
-            docker rm ${{ needs.build_web.outputs.image_title }} || true
-
-            # Create and start new container
-            docker run --detach \
-              --name ${{ needs.build_web.outputs.image_title }} \
-              --restart unless-stopped \
-              --mount type=bind,source=$(pwd)/${{ needs.build_web.outputs.image_title }}/static,target=/app/static,readonly \
-              --env-file ~/${{ needs.build_web.outputs.image_title }}/.env.prod \
-              -p ${{ env.PORT }}:3000 \
-              ${{ needs.build_web.outputs.image_name }}
-
-            # Clean up unused images
-            docker image prune -f
+            cd ~/${{ needs.build.outputs.image_title }}
+            curl -O https://raw.githubusercontent.com/${{ env.REPO }}/refs/heads/main/docker-compose.yml
+            docker compose -f docker-compose.yml up -d

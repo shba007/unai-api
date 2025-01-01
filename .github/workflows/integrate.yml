@@ -1,4 +1,4 @@
-name: Flask CI
+name: Fastapi CI
 
 on:
   push:
@@ -41,11 +41,3 @@ jobs:
 
       - name: Format Code
         run: uv run task format
-
-      - name: Create Release Pull Request
-        uses: changesets/action@v1
-        with:
-          title: 'chore(release): update version'
-          commit: 'chore(release): update version'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
