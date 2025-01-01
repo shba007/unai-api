@@ -19,6 +19,3 @@ logs
 # Assets files
 assets/*
 !assets/**/.gitkeep
-models
-
-firebase-cred.json

@@ -26,7 +26,9 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 WORKDIR /app
 
-COPY --from=builder /app/.venv /app/assets /app/server ./
+COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /app/assets /app/assets
+COPY --from=builder /app/server /app/server
 
 EXPOSE 8000
 

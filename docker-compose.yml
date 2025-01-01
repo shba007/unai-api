@@ -1,0 +1,10 @@
+name: 'unai'
+services:
+  api:
+    container_name: 'unai'
+    image: 'ghcr.io/shba007/unai-api:latest'
+    restart: on-failure:3
+    env_file:
+      - .env.prod
+    ports:
+      - 2300:8000

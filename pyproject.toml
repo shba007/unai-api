@@ -1,6 +1,6 @@
 [project]
 name = "unai-api"
-version = "0.1.0"
+version = "0.3.0"
 description = "Global REST API AI Service"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -14,9 +14,6 @@ dependencies = [
     "pydantic>=2.10.4",
     "scipy>=1.14.1",
     "nanoid>=2.0.0",
-    "transformers[torch]>=4.47.1",
-    "timm>=1.0.12",
-    "einops>=0.8.0",
 ]
 
 [dependency-groups]
