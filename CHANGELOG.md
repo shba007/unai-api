@@ -1,5 +1,11 @@
 # unai-api
 
+## 0.3.1
+
+### Patch Changes
+
+-  refactor: remove Docker Compose file and update deployment workflow for new repository structure
+
 ## 0.3.0
 
 ### Minor Changes
