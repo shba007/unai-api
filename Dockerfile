@@ -16,13 +16,15 @@ RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev
 
 COPY . .
 
-FROM python:3.12-slim AS runner
+FROM python:3.12-slim-bookworm AS runner
 
 ARG VERSION
 ARG BUILD_TIME
 
 ENV PYTHON_ENV=production
 ENV PATH="/app/.venv/bin:$PATH"
+ENV FASTAPI_APP_VERSION=$VERSION
+ENV FASTAPI_APP_BUILD_TIME=$BUILD_TIME
 
 WORKDIR /app
 

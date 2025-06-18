@@ -1,7 +1,7 @@
 [project]
 name = "unai-api"
 version = "0.3.1"
-description = "Global REST API AI Service"
+description = "AI Service"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -14,6 +14,7 @@ dependencies = [
     "pydantic>=2.10.4",
     "scipy>=1.14.1",
     "nanoid>=2.0.0",
+    "sqlmodel>=0.0.24",
 ]
 
 [project.urls]
@@ -21,7 +22,6 @@ Source = "https://github.com/shba007/unai-api.git"
 
 [dependency-groups]
 dev = [
-    "changelog-gen>=0.13.5",
     "pytest>=8.3.4",
     "ruff>=0.8.5",
     "taskipy>=1.14.1",

@@ -1,5 +1,9 @@
 name: Fastapi CI
 
+permissions:
+  contents: write
+  pull-requests: write
+
 on:
   push:
     branches:
@@ -7,37 +11,69 @@ on:
 
 jobs:
   build:
+    if: >
+      !(
+        contains(github.event.head_commit.message, 'ci(release):') ||
+        contains(github.event.head_commit.message, '[skip ci]') ||
+        startsWith(github.event.head_commit.message, 'Merge pull request') ||
+        startsWith(github.event.head_commit.message, 'Merge branch')
+      )
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-      pull-requests: write
-
     steps:
-      - name: Checkout Repo
+      - name: 📥 Checkout Repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup uv
+      - name: 🛠️ Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: 🛠️ Setup uv
         uses: astral-sh/setup-uv@v4
 
-      - name: Set up Python
+      - name: 🛠️ Setup Python
         uses: actions/setup-python@v5
         with:
           python-version-file: '.python-version'
 
-      - name: Install Dependencies
+      - name: 📦 Install Dependencies
         run: uv sync
 
-      # - name: Build Artifacts
+      # - name: ⚙️ Build Artifacts
       #   run: uv build
 
-      # - name: Run Tests
+      # - name: ✅ Test Code
       #   run: uv test
 
-      - name: Lint Code
+      - name: 🧹 Lint Code
         run: uv run task lint || echo "Linting failed, but continuing"
 
-      - name: Format Code
+      - name: 🧼 Format Code
         run: uv run task format
+
+      - name: 🤖 AutoFix Code
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore: apply code fixes [skip ci]'
+
+      - name: 🏷️ Bump Version
+        id: bump_version
+        run: |
+          rm -f CHANGELOG.md
+          bunx changelogen@latest --bump
+          CHLOG=$(cat CHANGELOG.md)
+          echo -e "CHANGELOG_CONTENT<<EOF\n${CHLOG}\nEOF" >> $GITHUB_ENV
+          git reset --hard
+          bunx changelogen@latest --bump
+
+      - name: 🔀 Create or Update Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: 'ci(release): update version'
+          title: 'ci(release): update version'
+          body: ${{ env.CHANGELOG_CONTENT }}
+          branch: 'release/update-version'
+          base: 'develop'
+          delete-branch: true
